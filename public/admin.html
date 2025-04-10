@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Admin Config Panel</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      max-width: 600px;
+      margin: 2rem auto;
+      padding: 1rem;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    h2 {
+      text-align: center;
+    }
+    label {
+      font-weight: bold;
+      display: block;
+      margin-top: 1rem;
+    }
+    input, textarea {
+      width: 100%;
+      padding: 8px;
+      font-size: 1rem;
+      margin-top: 5px;
+    }
+    button {
+      margin-top: 1.5rem;
+      padding: 10px 20px;
+      font-size: 1rem;
+      background: #007bff;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #0056b3;
+    }
+    .status {
+      margin-top: 1rem;
+      font-weight: bold;
+      color: green;
+    }
+  </style>
+</head>
+<body>
+  <h2>Admin Config Panel</h2>
+
+  <label>STATIC_EXPIRES</label>
+  <input id="STATIC_EXPIRES" />
+
+  <label>STATIC_SIGNATURE</label>
+  <textarea id="STATIC_SIGNATURE" rows="4"></textarea>
+
+  <label>STATIC_BUSTER</label>
+  <input id="STATIC_BUSTER" />
+
+  <label>STATIC_SID</label>
+  <input id="STATIC_SID" />
+
+  <button onclick="saveConfig()">Save</button>
+
+  <div class="status" id="status"></div>
+
+  <script>
+    async function loadConfig() {
+      const res = await fetch('/admin/config');
+      const config = await res.json();
+      document.getElementById('STATIC_EXPIRES').value = config.STATIC_EXPIRES;
+      document.getElementById('STATIC_SIGNATURE').value = config.STATIC_SIGNATURE;
+      document.getElementById('STATIC_BUSTER').value = config.STATIC_BUSTER;
+      document.getElementById('STATIC_SID').value = config.STATIC_SID;
+    }
+
+    async function saveConfig() {
+      const config = {
+        STATIC_EXPIRES: document.getElementById('STATIC_EXPIRES').value,
+        STATIC_SIGNATURE: document.getElementById('STATIC_SIGNATURE').value,
+        STATIC_BUSTER: document.getElementById('STATIC_BUSTER').value,
+        STATIC_SID: document.getElementById('STATIC_SID').value
+      };
+
+      const res = await fetch('/admin/config', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(config)
+      });
+
+      if (res.ok) {
+        document.getElementById('status').textContent = '✅ Configuration saved!';
+      } else {
+        document.getElementById('status').textContent = '❌ Failed to save configuration.';
+      }
+    }
+
+    loadConfig();
+  </script>
+</body>
+</html>
