@@ -41,7 +41,23 @@ app.get('/admin/config', (req, res) => {
   const config = loadConfig();
   res.json(config);
 });
-
+app.get('/proxy/dell', async (req, res) => {
+  try {
+    const config = loadConfig();
+    const encodedSignature = encodeURIComponent(config.STATIC_SIGNATURE);
+    const localURL = `http://127.0.0.1:8884/clientservice/isalive/?expires=${config.STATIC_EXPIRES}&signature=${encodedSignature}&buster=${config.STATIC_BUSTER}&s_id=${config.STATIC_SID}`;
+    
+    const response = await axios.get(localURL, {
+      headers: {
+        Referer: 'https://www.dell.com/support/home/en-in'
+      }
+    });
+    
+    res.json(response.data);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
 app.post('/admin/config', (req, res) => {
   saveConfig(req.body);
   res.json({ status: 'success', saved: req.body });

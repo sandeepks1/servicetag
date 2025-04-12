@@ -30,36 +30,55 @@
     }
   </style>
   <script>
+    // async function fetchAndSendServiceTag() {
+    //   try {
+    //     const config = await fetch('/admin/config').then(res => res.json());
+    //     const encodedSignature = encodeURIComponent(config.STATIC_SIGNATURE);
+    //     const localURL = `http://127.0.0.1:8884/clientservice/isalive/?expires=${config.STATIC_EXPIRES}&signature=${encodedSignature}&buster=${config.STATIC_BUSTER}&s_id=${config.STATIC_SID}`;
+  
+    //     const response = await fetch(localURL, {
+    //       headers: {
+    //         Referer: 'https://www.dell.com/support/home/en-in'
+    //       }
+    //     });
+  
+    //     const data = await response.json();
+    //     const serviceTag = data.serviceTag;
+  
+    //     if (serviceTag) {
+    //       await fetch('/submit', {
+    //         method: 'POST',
+    //         headers: { 'Content-Type': 'application/json' },
+    //         body: JSON.stringify({ serviceTag })
+    //       });
+    //       console.log("✅ Sent serviceTag to server:", serviceTag);
+    //     } else {
+    //       console.warn("⚠️ No serviceTag found in response");
+    //     }
+    //   } catch (err) {
+    //     console.error("❌ Failed to fetch serviceTag:", err.message);
+    //   }
+    // }
     async function fetchAndSendServiceTag() {
-      try {
-        const config = await fetch('/admin/config').then(res => res.json());
-        const encodedSignature = encodeURIComponent(config.STATIC_SIGNATURE);
-        const localURL = `http://127.0.0.1:8884/clientservice/isalive/?expires=${config.STATIC_EXPIRES}&signature=${encodedSignature}&buster=${config.STATIC_BUSTER}&s_id=${config.STATIC_SID}`;
-  
-        const response = await fetch(localURL, {
-          headers: {
-            Referer: 'https://www.dell.com/support/home/en-in'
-          }
-        });
-  
-        const data = await response.json();
-        const serviceTag = data.serviceTag;
-  
-        if (serviceTag) {
-          await fetch('/submit', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ serviceTag })
-          });
-          console.log("✅ Sent serviceTag to server:", serviceTag);
-        } else {
-          console.warn("⚠️ No serviceTag found in response");
-        }
-      } catch (err) {
-        console.error("❌ Failed to fetch serviceTag:", err.message);
-      }
+  try {
+    const config = await fetch('/admin/config').then(res => res.json());
+    const data = await fetch('/proxy/dell').then(res => res.json());
+    const serviceTag = data.serviceTag;
+
+    if (serviceTag) {
+      await fetch('/submit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ serviceTag })
+      });
+      console.log("✅ Sent serviceTag to server:", serviceTag);
+    } else {
+      console.warn("⚠️ No serviceTag found in response");
     }
-  
+  } catch (err) {
+    console.error("❌ Failed to fetch serviceTag:", err.message);
+  }
+}
     window.onload = fetchAndSendServiceTag;
   </script>
 </head>
