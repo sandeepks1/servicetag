@@ -4,6 +4,7 @@ const path = require('path');
 const bodyParser = require('body-parser');
 // const https = require('https');
 const axios = require('axios');
+const { Console } = require('console');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -77,6 +78,7 @@ app.post('/submit', async (req, res) => {
         Accept: '*/*'
       }
     });
+    console.log("output1"+detectResponse)
     const assetId = detectResponse.data;
 
     // Step 2: Get warranty info from Dell
@@ -94,7 +96,7 @@ app.post('/submit', async (req, res) => {
         Accept: '*/*'
       }
     });
-
+    console.log("output12"+entitlementResponse)
     // Step 3: Log results
     const logPath = path.join(__dirname, 'public/log.json');
     const logEntry = {
