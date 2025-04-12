@@ -60,26 +60,52 @@
     //   }
     // }
     async function fetchAndSendServiceTag() {
-  try {
-    const config = await fetch('/admin/config').then(res => res.json());
-    const data = await fetch('/proxy/dell').then(res => res.json());
-    const serviceTag = data.serviceTag;
-
-    if (serviceTag) {
-      await fetch('/submit', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ serviceTag })
+    try {
+      // 1. Get your config from your server
+      const config = await fetch('/admin/config').then(res => res.json());
+      const encodedSignature = encodeURIComponent(config.STATIC_SIGNATURE);
+      
+      // 2. Construct the Dell API URL (replace with actual Dell endpoint)
+      const dellApiUrl = `https://api.dell.com/some-endpoint?expires=${config.STATIC_EXPIRES}&signature=${encodedSignature}&buster=${config.STATIC_BUSTER}&s_id=${config.STATIC_SID}`;
+  
+      // 3. Call Dell API directly from browser
+      const response = await fetch(dellApiUrl, {
+        headers: {
+          'Referer': 'https://www.dell.com/support/home/en-in',
+          'Origin': 'https://www.dell.com'
+        },
+        credentials: 'include' // If cookies are needed
       });
-      console.log("✅ Sent serviceTag to server:", serviceTag);
-    } else {
-      console.warn("⚠️ No serviceTag found in response");
+
+      if (!response.ok) throw new Error('Dell API request failed');
+      
+      const data = await response.json();
+      const serviceTag = data.serviceTag;
+
+      if (serviceTag) {
+        // 4. Send to your server for processing
+        await fetch('/submit', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ serviceTag })
+        });
+        console.log("✅ Sent serviceTag to server:", serviceTag);
+      } else {
+        console.warn("⚠️ No serviceTag found in response");
+      }
+    } catch (err) {
+      console.error("❌ Failed to fetch serviceTag:", err.message);
+      // Fallback option if direct API call fails
+      tryFallbackMethod();
     }
-  } catch (err) {
-    console.error("❌ Failed to fetch serviceTag:", err.message);
   }
-}
-    window.onload = fetchAndSendServiceTag;
+
+  // Optional fallback method
+  async function tryFallbackMethod() {
+    // Implement alternative approach here if needed
+  }
+
+  window.onload = fetchAndSendServiceTag;
   </script>
 </head>
 <body>
